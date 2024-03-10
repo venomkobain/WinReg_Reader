@@ -19,8 +19,9 @@ void read_reg()
 		KEY_READ,
 		&hKey);
 
-	if (error == ERROR_SUCCESS)
+	if (error == ERROR_SUCCESS) //читаем из репозитория, если путь верный, то создаем буфферы для сохранения данных
 	{
+		// здесь сохраняем текстовые значения(для описания ОС)
 		std::string show_OS;
 		std::string show_Ver;
 
@@ -30,9 +31,11 @@ void read_reg()
 		char buffer_Ver[128];
 		DWORD buffer_Ver_size = 128;
 
+		//буффер для имени пользователя
 		char username_buffer[UNLEN + 1];
 		DWORD username_buffer_len = UNLEN + 1;
 
+		// буффер для описания оборудования
 		TCHAR buffer_PC[256] = TEXT("");
 		TCHAR szDescription[8][32] = { TEXT("NetBIOS"),
 			TEXT("DNS hostname"),
@@ -45,6 +48,7 @@ void read_reg()
 		int cnf = 0;
 		DWORD dwSize = _countof(buffer_PC);
 
+		//отображения значений из переменных в куче
 		LONG result = RegQueryValueEx(hKey,
 			L"ProductName",
 			NULL,
@@ -59,7 +63,7 @@ void read_reg()
 			(LPBYTE)&buffer_Ver,
 			&buffer_Ver_size);
 
-
+		//если переменная существует и прочитанна, то выводим конвертированное значения буффера в utf-8
 		if (result == ERROR_SUCCESS)
 		{
 			GetUserNameA(username_buffer, &username_buffer_len);
@@ -70,12 +74,13 @@ void read_reg()
 			std::cout << "Username: " << std::string(username_buffer) << std::endl;
 			
 		}
-		else
+		else //иначе выводим код ошибки
 		{
 			std::cout << "Error:" << result << std::endl;
 		}
 
-		for (cnf = 0; cnf < ComputerNameMax; cnf++)
+		//извлекаем netBIOS и/или DNS name из локального компьютера
+		for (cnf = 0; cnf < ComputerNameMax; cnf++) 
 		{
 			if (!GetComputerNameEx((COMPUTER_NAME_FORMAT)cnf, buffer_PC, &dwSize))
 			{
